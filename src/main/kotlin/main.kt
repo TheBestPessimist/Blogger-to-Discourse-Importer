@@ -35,38 +35,70 @@ fun main(args: Array<String>) {
 fun getPostsAndComments(blogID: String) {
     val credential: Credential = auth()
     val blogger = Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("penis").build()
-    val blog = blogger.blogs().get(blogID).execute()
+    val blog = blogger.blogs().get(blogID).execute()        // not really needed. won't delete it tho :P
 
     // first create a request
-    val postListRequest = blogger.posts().list(blog.id)
-    postListRequest.maxResults = blog.posts.totalItems.toLong()
+    val bPostListRequest = blogger.posts().list(blog.id)
+    bPostListRequest.maxResults = blog.posts.totalItems.toLong()
 
     // that request is executed and returns a JSON object which contains
     // the needed items (posts in this case)
     // and a token used for pagination (making a new request)
-    var postList = postListRequest.execute()
-    var posts = postList.items
+    var bPostList = bPostListRequest.execute()
+    var bPosts = bPostList.items
 
-    while (posts != null && posts.isNotEmpty()) {
-        for (post in posts) {
-//            println("post: ${post.title}") // + if (post.replies.totalItems != 0.toLong()) "======================================= comments: ${post}" else "" )
-            val comments: MutableList<tbp.blogger.reader.Comment> = getCommentsForPost(post, blogger)
 
-            val dpost = tbp.blogger.reader.Post(post.title, post.content, comments, post.updated.toLocalDateTime())
-            println(dpost)
+    while (bPosts != null && bPosts.isNotEmpty()) {
+        bPosts.forEach { bPost ->
+            //            println("bPost: ${bPost.labels}\n")
+            val post = createPost(bPost, blogger)
+            println(post)
         }
 
 
         // if there's no more "next pages" the iteration is finished
-        if (postList.nextPageToken.isNullOrEmpty()) {
+        if (bPostList.nextPageToken.isNullOrEmpty()) {
             break;
         }
 
         // pagination => new request
-        postListRequest.setPageToken(postList.nextPageToken)
-        postList = postListRequest.execute()
-        posts = postList.items
+        bPostListRequest.setPageToken(bPostList.nextPageToken)
+        bPostList = bPostListRequest.execute()
+        bPosts = bPostList.items
     }
+}
+
+fun createPost(bPost: Post, blogger: Blogger): tbp.blogger.reader.Post {
+    val bComments: MutableList<tbp.blogger.reader.Comment> = getCommentsForPost(bPost, blogger)
+
+    val post = with(bPost) {
+        tbp.blogger.reader.Post(
+                title,
+                content,
+                bComments,
+                updated.toLocalDateTime(),
+                /**
+                 * explanation of following:
+                 * the labels (tags of a bPost) can be null.
+                 * hence i use "?." to check for and return null and IGNORE a possible NPE when casting to mutable set
+                 * and then i use "?:" to return an empty mutableSet if anything on the left is null.
+                 *
+                 * java code:
+                 * void getLabels(labels){
+                 *      if(labels == null) {
+                 *           return mutableSetOf<String>()
+                 *      } else {
+                 *           val a = mutableSetOf<String>()
+                 *           a.addAll(labels)            // @dst this returns a boolean so i cant just do "return mutableSetOf<String>().addAll(labels)" :D
+                 *           return a
+                 *      }
+                 * }
+                 */
+                labels?.toMutableSet() ?: mutableSetOf<String>(),
+                url
+        )
+    }
+    return post
 }
 
 /**
