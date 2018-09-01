@@ -23,25 +23,24 @@ private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
 private lateinit var blog: Blog // from DiscourseBlog :^)
 
 fun main(args: Array<String>) {
-//    val b = A_SHADOW_OF_THE_DAY;
-    val b = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
-    blog = Blog(b, mutableListOf())
+//    val blogID = A_SHADOW_OF_THE_DAY;
+    val blogID = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
 
     initProxy()
 
-
-
-    getPostsAndComments(b)
+    getPostsAndComments(blogID)
+    println(blog)
 }
 
 fun getPostsAndComments(blogID: String) {
     val credential: Credential = auth()
     val blogger = Blogger.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("penis").build()
-    val blog = blogger.blogs().get(blogID).execute()        // not really needed. won't delete it tho :P
+    val bBlog = blogger.blogs().get(blogID).execute()        // not really needed. won't delete it tho :P
+    blog = Blog(bBlog.name, mutableListOf())
 
     // first create a request
-    val bPostListRequest = blogger.posts().list(blog.id)
-    bPostListRequest.maxResults = blog.posts.totalItems.toLong()
+    val bPostListRequest = blogger.posts().list(bBlog.id)
+    bPostListRequest.maxResults = bBlog.posts.totalItems.toLong()
 
     // that request is executed and returns a JSON object which contains
     // the needed items (posts in this case)
@@ -54,7 +53,7 @@ fun getPostsAndComments(blogID: String) {
         bPosts.forEach { bPost ->
             //            println("bPost: ${bPost.labels}\n")
             val post = createPost(bPost, blogger)
-            println(post)
+            blog.posts.add(post)
         }
 
 
