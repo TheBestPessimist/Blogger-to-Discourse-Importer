@@ -12,9 +12,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-private val A_SHADOW_OF_THE_DAY = "1653548642480190066"
-private val THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY = "4862558016181549125"
-private val BLOGGER_CREDENTIALS_FILE = "resources/blogger import-a5fa3807a02e.json"
+@Suppress("unused")
+private const val A_SHADOW_OF_THE_DAY = "1653548642480190066"
+private const val THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY = "4862558016181549125"
+private const val BLOGGER_CREDENTIALS_FILE = "resources/blogger import-a5fa3807a02e.json"
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
@@ -58,11 +59,11 @@ fun getPostsAndComments(blogID: String) {
 
         // if there's no more "next pages" the iteration is finished
         if (bPostList.nextPageToken.isNullOrEmpty()) {
-            break;
+            break
         }
 
         // pagination => new request
-        bPostListRequest.setPageToken(bPostList.nextPageToken)
+        bPostListRequest.pageToken = bPostList.nextPageToken
         bPostList = bPostListRequest.execute()
         bPosts = bPostList.items
     }
@@ -71,6 +72,7 @@ fun getPostsAndComments(blogID: String) {
 fun createPost(bPost: Post, blogger: Blogger): tbp.blogger.reader.Post {
     val bComments: MutableList<tbp.blogger.reader.Comment> = getCommentsForPost(bPost, blogger)
 
+    @Suppress("UnnecessaryVariable")
     val post = with(bPost) {
         tbp.blogger.reader.Post(
                 title,
@@ -94,7 +96,7 @@ fun createPost(bPost: Post, blogger: Blogger): tbp.blogger.reader.Post {
                  *      }
                  * }
                  */
-                labels?.toMutableSet() ?: mutableSetOf<String>(),
+                labels?.toMutableSet() ?: mutableSetOf(),
                 url
         )
     }
