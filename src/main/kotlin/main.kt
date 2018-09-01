@@ -20,15 +20,16 @@ private const val BLOGGER_CREDENTIALS_FILE = "resources/blogger import-a5fa3807a
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
 
-private lateinit var dBlog: Blog // from DiscourseBlog :^)
+private lateinit var blog: Blog // from DiscourseBlog :^)
 
 fun main(args: Array<String>) {
+//    val b = A_SHADOW_OF_THE_DAY;
+    val b = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
+    blog = Blog(b, mutableListOf())
+
     initProxy()
 
-    val b = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
-//    val b = A_SHADOW_OF_THE_DAY;
 
-    dBlog = Blog(b, mutableListOf())
 
     getPostsAndComments(b)
 }
