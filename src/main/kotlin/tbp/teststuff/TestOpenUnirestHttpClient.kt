@@ -1,6 +1,6 @@
 package tbp.teststuff
 
-import io.github.openunirest.http.Unirest
+import tbp.discourse.client.DiscourseClient
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -8,20 +8,21 @@ import java.util.*
 private lateinit var API_KEY: String
 private lateinit var API_USERNAME: String
 
+private lateinit var discourse: DiscourseClient
+
 
 fun main(args: Array<String>) {
     loadApiCredentials()
+    discourse = DiscourseClient(API_KEY, API_USERNAME, "https://chat.tbp.land/")
+
+    println(discourse.getLatest().body)
+
+//    discourse.createNewCategory("penis", "AAAAAA", "FFFFFF")
 
 
-    val request = Unirest.get("https://chat.tbp.land/admin/users/list/active.json")
-    request.queryString("api_key", API_KEY)
-    request.queryString("api_username", API_USERNAME)
 
-    println(request.url)
-
-
-    println(request.asJson().body)
 }
+
 
 private fun loadApiCredentials(): Unit {
     val props = Properties()
