@@ -15,9 +15,10 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile 'com.google.apis:google-api-services-blogger:v3-rev61-1.25.0'
 
-    compile 'org.apache.httpcomponents:httpclient:4.5.6'
-
     compile 'io.github.openunirest:unirest-java:2.2.12'
+
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.6'
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.6'
 }
 
 compileKotlin {
