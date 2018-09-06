@@ -15,17 +15,22 @@ fun main(args: Array<String>) {
     loadApiCredentials()
     discourse = DiscourseClient(API_KEY, API_USERNAME, "https://chat.tbp.land/")
 
-
     println(discourse.createNewCategory("penis", "red", "FFFFFF").body)
-
     val categoryId = discourse.searchCategoryByName("penis")
-    println(discourse.deleteCategory(categoryId).body)
 
+
+
+
+
+
+
+    // cleanup
+    println(discourse.deleteCategory(categoryId).body)
 
 }
 
 
-private fun loadApiCredentials(): Unit {
+private fun loadApiCredentials() {
     val props = Properties()
     props.load(Files.newBufferedReader(Paths.get("resources/discourse.api.key.properties")))
     API_KEY = props.getProperty("api_key")

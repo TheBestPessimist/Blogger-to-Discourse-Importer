@@ -9,6 +9,7 @@ import io.github.openunirest.request.GetRequest
 import io.github.openunirest.request.HttpRequestWithBody
 import java.net.URI
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: String) {
 
     fun getLatest(): HttpResponse<JsonNode> {
@@ -43,7 +44,7 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
          *
          * Why may i want to do that? For sanitizing the user input i guess.
          */
-        val link = "/categories/${id}"
+        val link = "/categories/$id"
         val req = deleteRequest(link)
 
         return req.asJson()
