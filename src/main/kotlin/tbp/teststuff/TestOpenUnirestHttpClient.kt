@@ -15,10 +15,11 @@ fun main(args: Array<String>) {
     loadApiCredentials()
     discourse = DiscourseClient(API_KEY, API_USERNAME, "https://chat.tbp.land/")
 
-    println(discourse.getLatest().body)
 
-//    discourse.createNewCategory("penis", "AAAAAA", "FFFFFF")
+    println(discourse.createNewCategory("penis", "red", "FFFFFF").body)
 
+    val categoryId = discourse.searchCategoryByName("penis")
+    println(discourse.deleteCategory(categoryId).body)
 
 
 }
