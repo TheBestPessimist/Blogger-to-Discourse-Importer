@@ -1,3 +1,5 @@
+package tbp
+
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -23,7 +25,7 @@ private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
 private lateinit var blog: Blog // from DiscourseBlog :^)
 
 fun main(args: Array<String>) {
-//    val blogID = A_SHADOW_OF_THE_DAY;
+//    val blogID = tbp.A_SHADOW_OF_THE_DAY;
     val blogID = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
 
     initProxy()

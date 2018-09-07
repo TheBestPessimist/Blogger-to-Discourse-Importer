@@ -1,4 +1,4 @@
-package tbp.teststuff
+package tbp
 
 import tbp.discourse.client.DiscourseClient
 import java.nio.file.Files
@@ -15,17 +15,12 @@ fun main(args: Array<String>) {
     loadApiCredentials()
     discourse = DiscourseClient(API_KEY, API_USERNAME, "https://chat.tbp.land/")
 
-    println(discourse.createNewCategory("penis", "red", "FFFFFF").body)
-    val categoryId = discourse.searchCategoryByName("penis")
-
-
-
-
-
-
-
     // cleanup
+    val categoryId = discourse.searchCategoryByName("penis")
     println(discourse.deleteCategory(categoryId).body)
+
+    println(discourse.createNewCategory("penis", "red", "FFFFFF").body)
+
 
 }
 
