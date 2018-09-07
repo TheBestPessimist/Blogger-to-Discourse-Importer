@@ -8,6 +8,7 @@ import io.github.openunirest.http.Unirest
 import io.github.openunirest.request.GetRequest
 import io.github.openunirest.request.HttpRequestWithBody
 import java.net.URI
+import java.time.LocalDateTime
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: String) {
@@ -27,10 +28,34 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
         return req.asJson()
     }
 
+    fun searchTopicByTitle(title: String): Int {
+        val link = "/search.json"
+        val req = getRequest(link)
+        req.queryString("q", title)
+        val json = req.asJson()
+
+        val mapper = jacksonObjectMapper()
+        return mapper.readTree(json.body.toString())["topics"]
+            .firstOrNull { title.equals(it["title"].asText(), true) }
+            ?.get("id")?.asInt() ?: -1
+    }
+
+    fun deleteTopic(id: Int): HttpResponse<JsonNode> {
+        val req = deleteRequest("/t/$id.json")
+        val json = req.asJson()
+
+        return json;
+    }
+
+    /**
+     * Delete a category.
+     * Before calling this method you should make sure than all topics except the default one are already deleted form the category!
+     */
     fun deleteCategory(id: Int): HttpResponse<JsonNode> {
         /**
          * i would like here to be able to use
          * req.routeParam()
+         * instead of string interpolation
          * but unfortunately URI.create() doesn't like the {}.
          *
          * One way to fix this is by passing a list of pars of strings to deleteRequest
@@ -44,10 +69,20 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
          *
          * Why may i want to do that? For sanitizing the user input i guess.
          */
-        val link = "/categories/$id"
+        val link = "/categories/$id.json"
         val req = deleteRequest(link)
 
         return req.asJson()
+    }
+
+    /**
+     * Fully delete a category along with it's topics.
+     */
+    fun deleteCategoryAndTopics(categoryID: Int, topicIDs: List<Int>): HttpResponse<JsonNode> {
+        for (id in topicIDs) {
+            deleteTopic(id)
+        }
+        return deleteCategory(categoryID)
     }
 
     /**
@@ -59,9 +94,9 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
 
         val mapper = jacksonObjectMapper()
         val treeToValue =
-            mapper.treeToValue<Array<DiscourseCategory>>(mapper.readTree(req.asJson().body.toString())["category_list"]["categories"])
+            mapper.treeToValue<Array<DiscourseCategory>>(mapper.readTree(req.asJson().body?.toString())["category_list"]["categories"])
 
-        return treeToValue.firstOrNull { it.name == name }?.id ?: -1
+        return treeToValue.firstOrNull { name.equals(it.name, true) }?.id ?: -1
     }
 
 
@@ -96,5 +131,31 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
         return request
     }
 
+    fun createNewTopic(title: String, rawContent: String, categoryId: Int, createdAt: LocalDateTime): HttpResponse<JsonNode> {
+        val req = postRequest("/posts.json")
+        req.queryString("title", title)
+        req.queryString("raw", rawContent)
+        req.queryString("category", categoryId)
+        req.queryString("created_at", createdAt)
 
+        return req.asJson()
+    }
+
+
+    fun getTopic(id: Int): HttpResponse<JsonNode> {
+        return getRequest("/t/$id.json").asJson()
+    }
+
+    fun getAllTopicsForCategory(id: Int): List<Int> {
+        val req = getRequest("/c/$id.json")
+        val json = req.asJson()
+
+        if (200 != json.status) {
+            return listOf()
+        }
+
+        val mapper = jacksonObjectMapper()
+        return mapper.readTree(json.body?.toString())["topic_list"]["topics"]
+            .map { it["id"].asInt() }
+    }
 }
