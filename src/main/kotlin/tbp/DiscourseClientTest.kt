@@ -31,3 +31,8 @@ private fun loadApiCredentials() {
     API_KEY = props.getProperty("api_key")
     API_USERNAME = props.getProperty("api_username")
 }
+
+
+fun HttpResponse<JsonNode>.dbg(): String {
+    return ">\n$headers\n$status: $statusText\n$parsingError\n$body\n<"
+}
