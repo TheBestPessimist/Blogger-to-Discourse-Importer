@@ -140,10 +140,34 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
 
     fun createNewTopic(title: String, rawContent: String, categoryId: Int, createdAt: LocalDateTime): HttpResponse<JsonNode> {
         val req = postRequest("/posts.json")
-        req.queryString("title", title)
-        req.queryString("raw", rawContent)
-        req.queryString("category", categoryId)
-        req.queryString("created_at", createdAt)
+        /**
+         * contrary to https://docs.discourse.org/#
+         * it seems that you don't have to send the json body, but actual form data!
+         *
+         * hence:
+         * - query string doesnt work
+         *      (ofc that makes sense because a a web url is limited in length and rawContent of
+         *      a post isnt)
+         *
+         * - sending a json body doesn't work!
+         *
+         * - the only thing that works is sending a form.
+         */
+
+
+//        req.queryString("title", title)   // not working
+
+//        val json = JSONObject().put("title", title).put("raw", rawContent).put("category", categoryId).put("created_at", createdAt)
+//        req.body(json.toString())         // not working either
+
+        req.fields(
+            mapOf(
+                "title" to title,
+                "category" to categoryId,
+                "created_at" to createdAt,
+                "raw" to rawContent
+            )
+        )
 
         return req.asJson()
     }
