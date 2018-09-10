@@ -106,7 +106,9 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
     private fun postRequest(link: String): HttpRequestWithBody {
         val request = Unirest.post(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
-        request.queryString("api_username", apiUsername)
+            .queryString("api_username", apiUsername)
+            .header("Content-Type", "multipart/form-data")
+            .header("Accept", "application/json")
         return request
     }
 
