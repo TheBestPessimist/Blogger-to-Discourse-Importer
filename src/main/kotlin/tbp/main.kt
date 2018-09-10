@@ -7,6 +7,9 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.blogger.Blogger
 import com.google.api.services.blogger.BloggerScopes
 import com.google.api.services.blogger.model.Post
+import org.jsoup.Jsoup
+import org.jsoup.nodes.TextNode
+import org.jsoup.safety.Whitelist
 import tbp.blogger.reader.Blog
 import tbp.blogger.reader.Comment
 import tbp.blogger.toLocalDateTime
@@ -22,16 +25,19 @@ private const val BLOGGER_CREDENTIALS_FILE = "resources/blogger import-a5fa3807a
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
 
-private lateinit var blog: Blog // from DiscourseBlog :^)
+public lateinit var blog: Blog // from DiscourseBlog :^)
 
 fun main(args: Array<String>) {
+    doWork()
+}
+
+fun doWork() {
 //    val blogID = tbp.A_SHADOW_OF_THE_DAY;
     val blogID = THE_MIGHTY_NAHSUCS_SONG_OF_THE_DAY
 
-    initProxy()
+//    initProxy()
 
     getPostsAndComments(blogID)
-    println(blog)
 }
 
 fun getPostsAndComments(blogID: String) {
@@ -53,7 +59,7 @@ fun getPostsAndComments(blogID: String) {
 
     while (bPosts != null && bPosts.isNotEmpty()) {
         bPosts.forEach { bPost ->
-            //            println("bPost: ${bPost.labels}\n")
+            //                        println("bPost: ${bPost.content}\n")
             val post = createPost(bPost, blogger)
             blog.posts.add(post)
         }
@@ -77,32 +83,58 @@ fun createPost(bPost: Post, blogger: Blogger): tbp.blogger.reader.Post {
     @Suppress("UnnecessaryVariable")
     val post = with(bPost) {
         tbp.blogger.reader.Post(
-                title,
-                content,
-                bComments,
-                updated.toLocalDateTime(),
-                /**
-                 * explanation of following:
-                 * the labels (tags of a bPost) can be null.
-                 * hence i use "?." to check for and return null and IGNORE a possible NPE when casting to mutable set
-                 * and then i use "?:" to return an empty mutableSet if anything on the left is null.
-                 *
-                 * java code:
-                 * void getLabels(labels){
-                 *      if(labels == null) {
-                 *           return mutableSetOf<String>()
-                 *      } else {
-                 *           val a = mutableSetOf<String>()
-                 *           a.addAll(labels)            // @dst this returns a boolean so i cant just do "return mutableSetOf<String>().addAll(labels)" :D
-                 *           return a
-                 *      }
-                 * }
-                 */
-                labels?.toMutableSet() ?: mutableSetOf(),
-                url
+            title,
+            getRidOfYoutubeEmbeds(content),
+            bComments,
+            updated.toLocalDateTime(),
+            /**
+             * explanation of following:
+             * the labels (tags of a bPost) can be null.
+             * hence i use "?." to check for and return null and IGNORE a possible NPE when casting to mutable set
+             * and then i use "?:" to return an empty mutableSet if anything on the left is null.
+             *
+             * java code:
+             * void getLabels(labels){
+             *      if(labels == null) {
+             *           return mutableSetOf<String>()
+             *      } else {
+             *           val a = mutableSetOf<String>()
+             *           a.addAll(labels)            // @dst this returns a boolean so i cant just do "return mutableSetOf<String>().addAll(labels)" :D
+             *           return a
+             *      }
+             * }
+             */
+            labels?.toMutableSet() ?: mutableSetOf(),
+            url
         )
     }
     return post
+}
+
+/**
+ * Replace iframe[src] and object > embed [src] with just the src.
+ */
+fun getRidOfYoutubeEmbeds(content: String): String {
+    val doc = Jsoup.parse(content)
+    val media = doc
+        .select("[src]")
+        .filter { it.attr("src").contains("youtube", true) }
+
+    media.forEach {
+        val src = it
+            .attr("src")
+            .replace("v/", "watch?v=", true)            // /v/ is for embeds, i need normal, /watch?v= links
+            .replace("embed/", "watch?v=", true)        // /embed/ is for iframes, ^^^^^^^^^^^^^^ (one might ask why the names are reversed)
+            .replace("http://", "https://", true)       // it's 2018. there's no any other fucking way!
+        if (it.tagName() == "iframe") {
+            it.replaceWith(TextNode(" $src "))
+        } else if (it.tagName() == "embed") {
+            it.parent().replaceWith(TextNode(" $src "))
+        }
+    }
+    val r = doc.body().childNodes().toString()
+        .replace("https://youtube", "\n https://youtube", true)
+    return Jsoup.clean(r, Whitelist.basicWithImages())
 }
 
 /**
@@ -129,8 +161,8 @@ fun getCommentsForPost(post: Post, blogger: Blogger): MutableList<tbp.blogger.re
 fun auth(): Credential {
 
     val googleCredential = GoogleCredential
-            .fromStream(Files.newInputStream(Paths.get(BLOGGER_CREDENTIALS_FILE)))
-            .createScoped(BloggerScopes.all())
+        .fromStream(Files.newInputStream(Paths.get(BLOGGER_CREDENTIALS_FILE)))
+        .createScoped(BloggerScopes.all())
     googleCredential.refreshToken()
 
     return googleCredential
