@@ -5,8 +5,9 @@ import io.github.openunirest.http.JsonNode
 import tbp.discourse.client.DiscourseClient
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 private lateinit var API_KEY: String
 private lateinit var API_USERNAME: String
@@ -38,13 +39,28 @@ fun main(args: Array<String>) {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    res = discourse.createNewTopic(
-        topicTitle,
-        "some content 2011-04-12T16:23:46",
-        categoryId,
-        LocalDateTime.parse("2011-04-12T16:23:46")
-    ).body
-    println(res)
+    doWork()
+
+    blog.posts
+        //.filter { it.title.contains("oildale", true) }
+        .forEach {
+
+        res = discourse.createNewTopic(
+            it.title,
+            it.content,
+            categoryId,
+            it.date
+        )
+
+        with(res as HttpResponse<JsonNode>) {
+            var s = "${Instant.now()} $status $statusText"
+            if(200 != status){
+                s += " $body"
+            }
+            println(s)
+        }
+        TimeUnit.MILLISECONDS.sleep(150)
+    }
 }
 
 
