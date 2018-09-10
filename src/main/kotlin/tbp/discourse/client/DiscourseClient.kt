@@ -77,6 +77,11 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
 
     /**
      * Fully delete a category along with it's topics.
+     *
+     * The default topic ("About the <topicName> category") cannot be deleted,
+     * but the category can be deleted when **only** that topic exists.
+     *
+     * The "not deletable" exceptions are silently ignored!
      */
     fun deleteCategoryAndTopics(categoryID: Int, topicIDs: List<Int>): HttpResponse<JsonNode> {
         for (id in topicIDs) {
