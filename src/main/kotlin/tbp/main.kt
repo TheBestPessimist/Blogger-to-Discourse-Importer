@@ -8,6 +8,8 @@ import com.google.api.services.blogger.Blogger
 import com.google.api.services.blogger.BloggerScopes
 import com.google.api.services.blogger.model.Post
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+
 import org.jsoup.nodes.TextNode
 import org.jsoup.safety.Whitelist
 import tbp.blogger.reader.Blog
@@ -132,9 +134,23 @@ fun getRidOfYoutubeEmbeds(content: String): String {
             it.parent().replaceWith(TextNode(" $src "))
         }
     }
-    val r = doc.body().childNodes().toString()
-        .replace("https://youtube", "\n https://youtube", true)
-    return Jsoup.clean(r, Whitelist.basicWithImages())
+    val r = doc.body().childNodes().joinToString("")
+        .replace("https://youtube", "\nhttps://youtube", true)
+        .replace("https://www.youtube", "\nhttps://www.youtube", true)
+        .replace("<br>", "", true)
+        .replace("<br/>", "", true)
+
+    // NEED a newline after a youtube link. (how the F to do that???)
+
+    return Jsoup.clean(
+        r,
+        "",
+        Whitelist.basicWithImages()
+//            .addTags("div")
+//            .removeAttributes("div", "color")
+//            .addAttributes("div", "text-align")
+        , Document.OutputSettings().prettyPrint(false)  // this is needed so that newlines remain in the cleaned html.
+    )
 }
 
 /**
