@@ -26,6 +26,8 @@ fun main(args: Array<String>) {
     // cleanup
     res = discourse.getAllTopicsForCategory(categoryId)
     res = discourse.deleteCategoryAndTopics(categoryId, res as List<Int>).body
+    res = discourse.getAllTopicsForCategory(categoryId)                          // if it doesn't work the first time...
+    res = discourse.deleteCategoryAndTopics(categoryId, res as List<Int>).body
     res = discourse.createNewCategory(categoryName, "red", "FFFFFF").body
     categoryId = discourse.searchCategoryByName(categoryName)
 
