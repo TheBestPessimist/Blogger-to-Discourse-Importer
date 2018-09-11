@@ -139,8 +139,15 @@ fun getRidOfYoutubeEmbeds(content: String): String {
         .replace("https://www.youtube", "\nhttps://www.youtube", true)
         .replace("<br>", "", true)
         .replace("<br/>", "", true)
-
-    // NEED a newline after a youtube link. (how the F to do that???)
+        /**
+         *  add 2 newlines after each youtube link. This should fix youtube oneboxing issues.
+         *
+         *  You probably noticed that this replace has only 1 argument, and a lambda after it, just like that.
+         *  It's explained in the docs: https://kotlinlang.org/docs/reference/lambdas.html#passing-a-lambda-to-the-last-parameter
+         */
+        .replace("""youtube\.com\S+""".toRegex(setOf(RegexOption.MULTILINE, RegexOption.IGNORE_CASE))) {
+            "${it.value}\n\n"
+        }
 
     return Jsoup.clean(
         r,
