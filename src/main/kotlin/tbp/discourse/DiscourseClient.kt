@@ -205,7 +205,9 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
     fun deleteRequest(link: String): HttpRequestWithBody {
         val request = Unirest.delete(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
-        request.queryString("api_username", apiUsername)
+            .queryString("api_username", apiUsername)
+            .header("Content-Type", "multipart/form-data")
+            .header("Accept", "application/json")
         return request
     }
 
@@ -215,7 +217,9 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
     fun getRequest(link: String): GetRequest {
         val request = Unirest.get(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
-        request.queryString("api_username", apiUsername)
+            .queryString("api_username", apiUsername)
+            .header("Content-Type", "multipart/form-data")
+            .header("Accept", "application/json")
         return request
     }
 
