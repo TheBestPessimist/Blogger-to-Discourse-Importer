@@ -70,6 +70,14 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         val req = rb.deleteRequest("/t/$id.json")
         val json = req.asJson()
 
+        with(json) {
+            if (200 != status) {
+                var s = "$status $statusText $body "
+                println(s)
+            }
+        }
+
+
         return json
     }
 
@@ -181,9 +189,18 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         val link = "/categories.json"
         val req = rb.getRequest(link)
 
+        with(req.asJson()) {
+            if (200 != status) {
+                println("$status $statusText $body")
+                return -1
+            }
+        }
+
         val mapper = jacksonObjectMapper()
+        val jsonNode = mapper.readTree(req.asJson().body.toString())
+
         val treeToValue =
-            mapper.treeToValue<Array<DiscourseCategory>>(mapper.readTree(req.asJson().body.toString())["category_list"]["categories"])
+            mapper.treeToValue<Array<DiscourseCategory>>(jsonNode["category_list"]["categories"])
 
         return treeToValue.firstOrNull { name.equals(it.name, true) }?.id ?: -1
     }

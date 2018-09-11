@@ -43,11 +43,11 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
                 )
 
                 with(res) {
-                    var s = "${Instant.now()}: ${it.title} $status $statusText"
                     if (200 != status) {
-                        s += " $body "
+                        var s = "${Instant.now()}: $status $statusText >${it.title}<"
+                        s += " $body ===${it.content}==="
+                        println(s)
                     }
-                    println(s)
                 }
                 TimeUnit.MILLISECONDS.sleep(150)
             }
@@ -60,6 +60,7 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
         discourse.deleteCategoryAndTopics(categoryId, res)
         res = discourse.getAllTopicsForCategory(categoryId)                          // if it doesn't work the first time...
         discourse.deleteCategoryAndTopics(categoryId, res)
+        println("finished cleanup")
     }
 
 
