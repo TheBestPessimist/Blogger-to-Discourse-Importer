@@ -126,7 +126,7 @@ fun getRidOfYoutubeEmbeds(content: String): String {
         val src = it
             .attr("src")
             .replace("v/", "watch?v=", true)            // /v/ is for embeds, i need normal, /watch?v= links
-            .replace("embed/", "watch?v=", true)        // /embed/ is for iframes, ^^^^^^^^^^^^^^ (one might ask why the names are reversed)
+            .replace("embed/", "watch?v=", true)        // /embed/ is for iframes, ^^^^^^^^^ (one might consider why the names are reversed)
             .replace("http://", "https://", true)       // it's 2018. there's no any other fucking way!
         if (it.tagName() == "iframe") {
             it.replaceWith(TextNode(" $src "))
@@ -142,8 +142,10 @@ fun getRidOfYoutubeEmbeds(content: String): String {
         /**
          *  add 2 newlines after each youtube link. This should fix youtube oneboxing issues.
          *
-         *  You probably noticed that this replace has only 1 argument, and a lambda after it, just like that.
+         *  You probably noticed that this replace has only 1 argument, and a lambda after it, just like that. (even though all replace methods have at least 2 arguments!)
          *  It's explained in the docs: https://kotlinlang.org/docs/reference/lambdas.html#passing-a-lambda-to-the-last-parameter
+         *
+         *  You have seen this used before, for example when doing `collection.filter {}.map {}` etc.
          */
         .replace("""youtube\.com\S+""".toRegex(setOf(RegexOption.MULTILINE, RegexOption.IGNORE_CASE))) {
             "${it.value}\n\n"
