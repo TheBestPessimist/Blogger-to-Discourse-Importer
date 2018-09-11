@@ -27,7 +27,7 @@ private const val BLOGGER_CREDENTIALS_FILE = "resources/blogger import-a5fa3807a
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
 
-public lateinit var blog: Blog // from DiscourseBlog :^)
+lateinit var blog: Blog // from DiscourseBlog :^)
 
 fun main(args: Array<String>) {
     doWork()
@@ -114,7 +114,7 @@ fun createPost(bPost: Post, blogger: Blogger): tbp.blogger.reader.Post {
 }
 
 /**
- * Replace iframe[src] and object > embed [src] with just the src.
+ * Replace iframe<src> and object > embed <src> with just the src.
  */
 fun getRidOfYoutubeEmbeds(content: String): String {
     val doc = Jsoup.parse(content)
@@ -194,7 +194,8 @@ fun auth(): Credential {
 }
 
 
-/**
+@Suppress("unused")
+        /**
  * Proxy is needed only for work pc.
  */
 fun initProxy() {

@@ -16,12 +16,12 @@ private lateinit var discourse: DiscourseClient
 
 private var res: Any = Any()  // just a dump (response) variable. Any in kotlin = Object in java
 
+@Suppress("UNCHECKED_CAST")
 fun main(args: Array<String>) {
     loadApiCredentials()
     discourse = DiscourseClient(API_KEY, API_USERNAME, "https://chat.tbp.land/")
 
     val categoryName = "penis"
-    val topicTitle = "new topic fdafdsafda"
     var categoryId = discourse.searchCategoryByName(categoryName)
 
     // cleanup
@@ -45,22 +45,22 @@ fun main(args: Array<String>) {
 //        .filter { it.title.contains("oildale", true) }
 //        .filter { it.title.contains("bonfires", true) }
         .forEach {
-        res = discourse.createNewTopic(
-            it.title,
-            it.content,
-            categoryId,
-            it.date
-        )
+            res = discourse.createNewTopic(
+                it.title,
+                it.content,
+                categoryId,
+                it.date
+            )
 
-        with(res as HttpResponse<JsonNode>) {
-            var s = "${Instant.now()} $status $statusText"
-            if(200 != status){
-                s += " $body"
+            with(res as HttpResponse<*>) {
+                var s = "${Instant.now()} $status $statusText"
+                if (200 != status) {
+                    s += " $body"
+                }
+                println(s)
             }
-            println(s)
+            TimeUnit.MILLISECONDS.sleep(150)
         }
-        TimeUnit.MILLISECONDS.sleep(150)
-    }
 }
 
 
@@ -72,6 +72,7 @@ private fun loadApiCredentials() {
 }
 
 
+@Suppress("unused")
 fun HttpResponse<JsonNode>.dbg(): String {
     return ">\n$headers\n$status: $statusText\n$parsingError\n$body\n<"
 }
