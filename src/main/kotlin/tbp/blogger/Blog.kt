@@ -1,4 +1,4 @@
-package tbp.blogger.reader
+package tbp.blogger
 
 import java.time.LocalDateTime
 

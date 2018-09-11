@@ -1,4 +1,4 @@
-package tbp.discourse.client
+package tbp.discourse
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
@@ -140,13 +140,13 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
     fun getAllTopicsForCategory(id: Int): List<Int> {
         val req = rb.getRequest("/c/$id.json")
-        val json = req.asJson()
+            val json = req.asJson()
 
-        if (200 != json.status) {
-            return listOf()
-        }
+            if (200 != json.status) {
+                return listOf()
+            }
 
-        val mapper = jacksonObjectMapper()
+            val mapper = jacksonObjectMapper()
         return mapper.readTree(json.body?.toString())["topic_list"]["topics"]
             .map { it["id"].asInt() }
     }
@@ -166,7 +166,7 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
         val mapper = jacksonObjectMapper()
         val treeToValue =
-            mapper.treeToValue<Array<DiscourseCategory>>(mapper.readTree(req.asJson().body?.toString())["category_list"]["categories"])
+            mapper.treeToValue<Array<DiscourseCategory>>(mapper.readTree(req.asJson().body.toString())["category_list"]["categories"])
 
         return treeToValue.firstOrNull { name.equals(it.name, true) }?.id ?: -1
     }
@@ -218,4 +218,10 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
         request.queryString("api_username", apiUsername)
         return request
     }
+
+    @Suppress("unused")
+    fun HttpResponse<JsonNode>.dbg(): String {
+        return ">\n$headers\n$status: $statusText\n$parsingError\n$body\n<"
+    }
+
 }

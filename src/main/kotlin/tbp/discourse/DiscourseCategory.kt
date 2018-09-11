@@ -1,4 +1,4 @@
-package tbp.discourse.client
+package tbp.discourse
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
