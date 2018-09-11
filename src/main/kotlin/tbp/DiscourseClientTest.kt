@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
     res = discourse.deleteCategoryAndTopics(categoryId, res as List<Int>).body
     res = discourse.getAllTopicsForCategory(categoryId)                          // if it doesn't work the first time...
     res = discourse.deleteCategoryAndTopics(categoryId, res as List<Int>).body
-    res = discourse.createNewCategory(categoryName, "red", "FFFFFF").body
+    res = discourse.createNewCategory(categoryName, "red", "FFFFFF", true).body
     categoryId = discourse.searchCategoryByName(categoryName)
 
     ////////////////////////////////////////////////////////////////////////////
@@ -42,9 +42,9 @@ fun main(args: Array<String>) {
     doWork()
 
     blog.posts
-        //.filter { it.title.contains("oildale", true) }
+//        .filter { it.title.contains("oildale", true) }
+//        .filter { it.title.contains("bonfires", true) }
         .forEach {
-
         res = discourse.createNewTopic(
             it.title,
             it.content,

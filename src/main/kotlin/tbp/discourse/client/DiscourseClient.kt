@@ -18,12 +18,19 @@ class DiscourseClient(val apiKey: String, val apiUsername: String, val baseUrl: 
         return getRequest(link).asJson()
     }
 
-    fun createNewCategory(name: String, color: String, textColor: String): HttpResponse<JsonNode> {
+    fun createNewCategory(name: String, color: String, textColor: String, adminOnly: Boolean): HttpResponse<JsonNode> {
         val link = "/categories.json"
         val req = postRequest(link)
-        req.queryString("name", name)
-        req.queryString("color", color)
-        req.queryString("text_color", textColor)
+
+        val formData: MutableMap<String, Any> = mutableMapOf(
+            "name" to name,
+            "color" to color,
+            "text_color" to textColor
+        )
+        if (adminOnly) {
+            formData["permissions[admins]"] = 1
+        }
+        req.fields(formData)
 
         return req.asJson()
     }
