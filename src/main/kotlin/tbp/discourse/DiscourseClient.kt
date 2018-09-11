@@ -138,8 +138,16 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         return deleteCategory(categoryID)
     }
 
+    /**
+     * The response may be paged =>
+     * there may be more posts on the next page
+     */
     fun getAllTopicsForCategory(id: Int): List<Int> {
-        val req = rb.getRequest("/c/$id.json")
+        var reqLink = "/c/$id.json"
+        val topicIDs = mutableSetOf<Int>()
+
+        while (!reqLink.isNullOrEmpty()) {
+            val req = rb.getRequest(reqLink)
             val json = req.asJson()
 
             if (200 != json.status) {
@@ -147,8 +155,17 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
             }
 
             val mapper = jacksonObjectMapper()
-        return mapper.readTree(json.body?.toString())["topic_list"]["topics"]
-            .map { it["id"].asInt() }
+            val topicList = mapper.readTree(json.body?.toString())["topic_list"]
+
+            reqLink = if (!topicList["more_topics_url"]?.textValue().isNullOrEmpty()) {
+                topicList["more_topics_url"].textValue().replace("?", ".json?")
+            } else {
+                ""
+            }
+
+            topicIDs.addAll(topicList["topics"].map { it["id"].asInt() })
+        }
+        return topicIDs.toList()
     }
 
 
