@@ -13,9 +13,7 @@ import java.time.LocalDateTime
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
-    private val rb: DiscourseRequestBuilder =
-        DiscourseRequestBuilder(apiKey, apiUsername, baseUrl)
-
+    private val rb: DiscourseRequestBuilder = DiscourseRequestBuilder(apiKey, apiUsername, baseUrl)
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -23,12 +21,12 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
     fun getLatestTopics(): HttpResponse<JsonNode> {
         val link = "/latest.json"
-        return rb.getRequest(link).asJson()
+        return rb.getRequest(link, emptyMap()).asJson()
     }
 
 
     fun getTopic(id: Int): HttpResponse<JsonNode> {
-        return rb.getRequest("/t/$id.json").asJson()
+        return rb.getRequest("/t/$id.json", emptyMap()).asJson()
     }
 
     fun createNewTopic(title: String, rawContent: String, categoryId: Int, createdAt: LocalDateTime): HttpResponse<JsonNode> {
@@ -155,7 +153,7 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         val topicIDs = mutableSetOf<Int>()
 
         while (!reqLink.isNullOrEmpty()) {
-            val req = rb.getRequest(reqLink)
+            val req = rb.getRequest(reqLink, emptyMap())
             val json = req.asJson()
 
             if (200 != json.status) {
@@ -187,7 +185,7 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
      */
     fun searchCategoryByName(name: String): Int {
         val link = "/categories.json"
-        val req = rb.getRequest(link)
+        val req = rb.getRequest(link, emptyMap())
 
         with(req.asJson()) {
             if (200 != status) {
@@ -208,8 +206,12 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
     fun searchTopicByTitle(title: String): Int {
         val link = "/search.json"
-        val req = rb.getRequest(link)
-        req.queryString("q", title)
+
+        val queryString = mapOf(
+            "q" to title
+        )
+
+        val req = rb.getRequest(link, queryString)
         val json = req.asJson()
 
         val mapper = jacksonObjectMapper()
@@ -248,18 +250,28 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
     /**
      * Generic GET builder
      */
-    fun getRequest(link: String): GetRequest {
+    fun getRequest(link: String, queryString: Map<String, String>): GetRequest {
         val request = Unirest.get(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
             .queryString("api_username", apiUsername)
             .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
+        queryString.forEach { k, v ->
+            request.queryString(k, v)
+        }
+
+        val json = request.asJson()
+        if (json.status == 429) {
+            json.dbg()
+        }
+
+
         return request
     }
 
     @Suppress("unused")
-    fun HttpResponse<JsonNode>.dbg(): String {
-        return ">\n$headers\n$status: $statusText\n$parsingError\n$body\n<"
+    fun HttpResponse<JsonNode>.dbg() {
+        println(">\n$headers\n$status: $statusText\n$parsingError\n$body\n<")
     }
 
 }
