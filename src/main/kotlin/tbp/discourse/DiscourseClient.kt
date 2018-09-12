@@ -30,7 +30,6 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
     }
 
     fun createNewTopic(title: String, rawContent: String, categoryId: Int, createdAt: LocalDateTime): HttpResponse<JsonNode> {
-        val req = rb.postRequest("/posts.json")
         /**
          * contrary to https://docs.discourse.org/#
          * it seems that you don't have to send the json body, but actual form data!
@@ -51,14 +50,13 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 //        val json = JSONObject().put("title", title).put("raw", rawContent).put("category", categoryId).put("created_at", createdAt)
 //        req.body(json.toString())         // not working either
 
-        req.fields(
-            mapOf(
-                "title" to title,
-                "category" to categoryId,
-                "created_at" to createdAt,
-                "raw" to rawContent
-            )
+        val formData = mapOf(
+            "title" to title,
+            "category" to categoryId,
+            "created_at" to createdAt,
+            "raw" to rawContent
         )
+        val req = rb.postRequest("/posts.json", formData)
 
         return req.asJson()
     }
@@ -86,8 +84,6 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
 
     fun createNewCategory(name: String, color: String, textColor: String, adminOnly: Boolean): HttpResponse<JsonNode> {
         val link = "/categories.json"
-        val req = rb.postRequest(link)
-
         val formData: MutableMap<String, Any> = mutableMapOf(
             "name" to name,
             "color" to color,
@@ -96,7 +92,8 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         if (adminOnly) {
             formData["permissions[admins]"] = 1
         }
-        req.fields(formData)
+
+        val req = rb.postRequest(link, formData)
 
         return req.asJson()
     }
@@ -226,12 +223,14 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
     /**
      * Generic POST builder
      */
-    fun postRequest(link: String): HttpRequestWithBody {
+    fun postRequest(link: String, formData: Map<String, Any>): HttpRequestWithBody {
         val request = Unirest.post(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
             .queryString("api_username", apiUsername)
             .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
+            .fields(formData)
+
         return request
     }
 
