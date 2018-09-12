@@ -72,9 +72,11 @@ class BloggerDownloader(private val blogID: String) {
 
         @Suppress("UnnecessaryVariable")
         val post = with(bPost) {
+            val content = getRidOfYoutubeEmbeds(content)
+            val title = handleInvalidTitle(title, content)
             Post(
                 title,
-                getRidOfYoutubeEmbeds(content),
+                content,
                 bComments,
                 updated.toLocalDateTime(),
                 /**
@@ -99,6 +101,29 @@ class BloggerDownloader(private val blogID: String) {
             )
         }
         return post
+    }
+
+    /**
+     * If the title is empty, return the first phrase in the content, stripped of all html
+     */
+    @Suppress("ReplaceGetOrSet")
+    private fun handleInvalidTitle(title: String?, content: String): String {
+        return if (title.isNullOrEmpty()) {
+            val cleanContent = Jsoup.clean(
+                content,
+                "",
+                Whitelist.none()
+                , Document.OutputSettings().prettyPrint(false)  // this is needed so that newlines remain in the cleaned html.
+            )
+            cleanContent.split("\n")
+                .filter { !it.isEmpty() }
+                .get(0)
+                .split("""\W""".toRegex())
+                .takeWhile { it.isNotBlank() }
+                .joinToString(" ")
+        } else {
+            title!!
+        }
     }
 
     /**
