@@ -5,7 +5,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
@@ -49,7 +48,6 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
                         println(s)
                     }
                 }
-                TimeUnit.MILLISECONDS.sleep(150)
             }
 
     }
