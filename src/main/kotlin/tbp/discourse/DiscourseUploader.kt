@@ -46,6 +46,9 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
                     if (200 != status) {
                         var s = "${Instant.now()}: $status $statusText >${it.title}<"
                         s += " $body ===${it.content}==="
+                        s += "\n" + "==".repeat(30)
+                        s += "\n" + "==".repeat(30)
+                        s += "\n" + "==".repeat(30)
                         println(s)
                     }
                 }
