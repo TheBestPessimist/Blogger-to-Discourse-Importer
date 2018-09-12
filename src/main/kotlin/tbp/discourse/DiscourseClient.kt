@@ -7,8 +7,11 @@ import io.github.openunirest.http.JsonNode
 import io.github.openunirest.http.Unirest
 import io.github.openunirest.request.GetRequest
 import io.github.openunirest.request.HttpRequestWithBody
+import org.apache.http.entity.ContentType
+import java.io.File
 import java.net.URI
 import java.time.LocalDateTime
+
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
@@ -216,6 +219,37 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
             .firstOrNull { title.equals(it["title"].asText(), true) }
             ?.get("id")?.asInt() ?: -1
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    //              upload
+
+    fun uploadFile(file: File) {
+//
+//        val formData = mapOf(
+//            "file" to file,
+//            "type" to "composer"
+//            ,
+//            "synchronous" to true
+//        )
+////        val req = rb.postRequest("/uploads.json", formData)
+
+        val request = Unirest.post("https://chat.tbp.land/uploads.json")
+        request
+//            .header("Content-Type", "multipart/form-data")
+            .header("Accept", "application/json")
+
+
+        request.field("files[]", file.inputStream().buffered(), ContentType.DEFAULT_BINARY, file.name)
+            .field("type", "composer", ContentType.TEXT_PLAIN.mimeType)
+            .field("synchronous", "true", ContentType.TEXT_PLAIN.mimeType)
+            .field("api_key", rb.apiKey, ContentType.TEXT_PLAIN.mimeType)
+            .field("api_username", rb.apiUsername, ContentType.TEXT_PLAIN.mimeType)
+
+        request.asJson().dbg()
+
+    }
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -229,7 +263,7 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
             .queryString("api_username", apiUsername)
             .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
-            .fields(formData)
+//            .fields(formData)
 
         return request
     }
@@ -268,9 +302,10 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
         return request
     }
 
-    @Suppress("unused")
-    fun HttpResponse<JsonNode>.dbg() {
-        println(">\n$headers\n$status: $statusText\n$parsingError\n$body\n<")
-    }
 
+}
+
+@Suppress("unused")
+fun HttpResponse<JsonNode>.dbg() {
+    println(">>>>>>>>>>>\n$headers\n$status: $statusText\n$parsingError\n$body\n<<<<<<<<<<<<<")
 }
