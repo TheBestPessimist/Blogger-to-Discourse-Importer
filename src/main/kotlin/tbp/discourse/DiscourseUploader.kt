@@ -3,6 +3,7 @@ package tbp.discourse
 import tbp.blogger.Blog
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -53,12 +54,12 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
     }
 
     private fun cleanup() {
+        println("begin cleanup")
+        val now = Instant.now()
         val categoryId = discourse.searchCategoryByName(categoryName)
-        var res = discourse.getAllTopicsForCategory(categoryId)
+        val res = discourse.getAllTopicsForCategory(categoryId)
         discourse.deleteCategoryAndTopics(categoryId, res)
-        res = discourse.getAllTopicsForCategory(categoryId)                          // if it doesn't work the first time...
-        discourse.deleteCategoryAndTopics(categoryId, res)
-        println("finished cleanup")
+        println("finished cleanup in " + Duration.between(now, Instant.now()))
     }
 
 
