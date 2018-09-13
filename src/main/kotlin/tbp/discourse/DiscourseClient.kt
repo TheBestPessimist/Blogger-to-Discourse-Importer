@@ -32,6 +32,18 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         return rb.getRequest("/t/$id.json", emptyMap()).asJson()
     }
 
+    fun createReplyToTopic(topicId: Int, rawContent: String, createdAt: LocalDateTime): HttpResponse<JsonNode> {
+        val formData = mapOf(
+            "topic_id" to topicId,
+            "created_at" to createdAt,
+            "raw" to rawContent
+        )
+        val req = rb.postRequest("/posts.json", formData)
+
+        return req.asJson()
+    }
+
+
     fun createNewTopic(title: String, rawContent: String, categoryId: Int, createdAt: LocalDateTime): HttpResponse<JsonNode> {
         /**
          * contrary to https://docs.discourse.org/#
