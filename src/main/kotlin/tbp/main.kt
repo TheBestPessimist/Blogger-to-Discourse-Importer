@@ -13,17 +13,10 @@ private const val SONG_OF_THE_DAY = "4862558016181549125"
 fun main(args: Array<String>) {
     //    initProxy()
 
-//    val blogID = SHADOW
-    val blogID = SONG_OF_THE_DAY
+    val blogID = SHADOW
+//    val blogID = SONG_OF_THE_DAY
 
     var blog = BloggerDownloader(blogID).doDownload()
-
-//    testing filter for adding only the possibly problematic posts
-//    blog = blog.copy(
-//        posts = blog.posts.filter {
-//            it.title.contains("weekend", true)
-//        }.toMutableList()
-//    )
 
     DiscourseUploader(blog, "https://chat.tbp.land").doUpload()
 }
