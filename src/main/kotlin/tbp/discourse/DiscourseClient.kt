@@ -258,7 +258,7 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
         val request = Unirest.post(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
             .queryString("api_username", apiUsername)
-            .header("Content-Type", "multipart/form-data")
+//            .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
 //            .fields(formData)
 
@@ -272,7 +272,7 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
         val request = Unirest.delete(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
             .queryString("api_username", apiUsername)
-            .header("Content-Type", "multipart/form-data")
+//            .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
         return request
     }
@@ -284,7 +284,7 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
         val request = Unirest.get(URI.create("$baseUrl/$link").normalize().toString())
         request.queryString("api_key", apiKey)
             .queryString("api_username", apiUsername)
-            .header("Content-Type", "multipart/form-data")
+//            .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
         queryString.forEach { k, v ->
             request.queryString(k, v)
