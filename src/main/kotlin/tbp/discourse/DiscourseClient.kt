@@ -260,7 +260,7 @@ class DiscourseRequestBuilder(val apiKey: String, val apiUsername: String, val b
             .queryString("api_username", apiUsername)
 //            .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
-//            .fields(formData)
+            .fields(formData)
 
         return request
     }
