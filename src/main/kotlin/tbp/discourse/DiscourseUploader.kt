@@ -1,6 +1,7 @@
 package tbp.discourse
 
 import tbp.blogger.Blog
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
@@ -35,14 +36,19 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
         val now = Instant.now()
 
         blog.posts
-//        .filter { it.title.contains("oildale", true) }
-//        .filter { it.title.contains("bonfires", true) }
             .forEach {
-                val res = discourse.createNewTopic(it.title, it.content, categoryId, it.date)
+                var theContent = it.content
+
+                it.images.forEach {img ->
+                    val uploadedUrl = discourse.uploadFile(ByteArrayInputStream(img.raw), img.name)
+                    theContent = theContent.replace(img.name, "\n$uploadedUrl\n")
+                }
+
+                val res = discourse.createNewTopic(it.title, theContent, categoryId, it.date)
 
                 with(res) {
                     if (200 != status) {
-                        val s = "${Instant.now()}: $status $statusText >${it.title}<\n$body\n" + "==".repeat(30)
+                        val s = "${Instant.now()}: $status $statusText >${it.title}<\n$body\n${it.bloggerURL}" + "==".repeat(30)
                         println(s)
                     }
                 }
