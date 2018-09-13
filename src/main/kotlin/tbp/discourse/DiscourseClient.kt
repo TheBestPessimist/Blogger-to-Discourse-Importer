@@ -8,7 +8,7 @@ import io.github.openunirest.http.Unirest
 import io.github.openunirest.request.GetRequest
 import io.github.openunirest.request.HttpRequestWithBody
 import org.apache.http.entity.ContentType
-import java.io.File
+import java.io.InputStream
 import java.net.URI
 import java.time.LocalDateTime
 
@@ -225,30 +225,27 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
     ////////////////////////////////////////////////////////////////////////////
     //              upload
 
-    fun uploadFile(file: File) {
-//
-//        val formData = mapOf(
-//            "file" to file,
-//            "type" to "composer"
-//            ,
-//            "synchronous" to true
-//        )
-////        val req = rb.postRequest("/uploads.json", formData)
-
+    /**
+     * upload a file and return the usable url
+     */
+    fun uploadFile(fileInputStream: InputStream, fileName: String): String {
         val request = Unirest.post("https://chat.tbp.land/uploads.json")
         request
-//            .header("Content-Type", "multipart/form-data")
             .header("Accept", "application/json")
 
-
-        request.field("files[]", file.inputStream().buffered(), ContentType.DEFAULT_BINARY, file.name)
+        request.field("files[]", fileInputStream, ContentType.DEFAULT_BINARY, fileName)
             .field("type", "composer", ContentType.TEXT_PLAIN.mimeType)
             .field("synchronous", "true", ContentType.TEXT_PLAIN.mimeType)
             .field("api_key", rb.apiKey, ContentType.TEXT_PLAIN.mimeType)
             .field("api_username", rb.apiUsername, ContentType.TEXT_PLAIN.mimeType)
 
-        request.asJson().dbg()
+        val json = request.asJson()
 
+        val jsonTree = jacksonObjectMapper().readTree(json.body.toString())
+        val url = jsonTree["short_url"].asText()
+        val title = jsonTree["original_filename"].asText()
+
+        return "![$title]($url)"
     }
 }
 
