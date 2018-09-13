@@ -164,7 +164,7 @@ class DiscourseClient(apiKey: String, apiUsername: String, baseUrl: String) {
         var reqLink = "/c/$id.json"
         val topicIDs = mutableSetOf<Int>()
 
-        while (!reqLink.isNullOrEmpty()) {
+        while (!reqLink.isEmpty()) {
             val req = rb.getRequest(reqLink, emptyMap())
             val json = req.asJson()
 
