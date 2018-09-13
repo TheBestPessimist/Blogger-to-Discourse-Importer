@@ -8,7 +8,10 @@ data class Post(val title: String, val content: String, val comments: MutableLis
 //    override fun toString(): String {
 //        return "Post(title='$title', comments=$comments, date=$date, tags=$tags, bloggerURL='$bloggerURL') \n"
 //    }
+
+    lateinit var images: List<Image>
 }
 
-
 data class Comment(val author: String, val content: String, val date: LocalDateTime)
+
+data class Image(val name: String, val raw: ByteArray, val url: String)

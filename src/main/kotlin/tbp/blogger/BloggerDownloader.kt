@@ -7,10 +7,13 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.blogger.Blogger
 import com.google.api.services.blogger.BloggerScopes
 import com.google.api.services.blogger.model.Post
+import io.github.openunirest.http.Unirest
+import org.apache.commons.codec.digest.DigestUtils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.TextNode
 import org.jsoup.safety.Whitelist
+import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -46,7 +49,6 @@ class BloggerDownloader(private val blogID: String) {
 
         while (bPosts != null && bPosts.isNotEmpty()) {
             bPosts.forEach { bPost ->
-                //                        println("bPost: ${bPost.content}\n")
                 val post = createPost(bPost, blogger)
                 blog.posts.add(post)
             }
@@ -72,11 +74,15 @@ class BloggerDownloader(private val blogID: String) {
 
         @Suppress("UnnecessaryVariable")
         val post = with(bPost) {
-            val content = getRidOfYoutubeEmbeds(content)
-            val title = handleInvalidTitle(title, content)
-            Post(
+
+            val contentAndImgPair = getImagesFromBody(content)
+            var cleansedContent = contentAndImgPair.first
+            cleansedContent = getRidOfYoutubeEmbeds(cleansedContent)
+
+            val title = handleInvalidTitle(title, cleansedContent)
+            val p = Post(
                 title,
-                content,
+                cleansedContent,
                 bComments,
                 updated.toLocalDateTime(),
                 /**
@@ -99,8 +105,35 @@ class BloggerDownloader(private val blogID: String) {
                 labels?.toMutableSet() ?: mutableSetOf(),
                 url
             )
+            p.images = contentAndImgPair.second
+            p
         }
         return post
+    }
+
+    /**
+     * Download the images in a post in memory and return a list of those
+     * Replace the img tag with a unique image name, which will be used to link to the specific discourse upload
+     */
+    private fun getImagesFromBody(content: String): Pair<String, List<Image>> {
+        val images = mutableListOf<Image>()
+        val doc = Jsoup.parse(content)
+        doc.select("img[src]").forEach { it ->
+            val src = it.attr("src")
+            val name = DigestUtils.sha1Hex(src)
+            val out = ByteArrayOutputStream()
+            val len = Unirest.get(src).asBinary().body.buffered().copyTo(out)
+
+            if (len > 0) {
+                images.add(Image(name, out.toByteArray(), src))
+                if ("a" == it.parent().tagName()) {
+                    it.parent().replaceWith(TextNode("\n$name\n"))
+                } else {
+                    it.replaceWith(TextNode("\n$name\n"))
+                }
+            }
+        }
+        return Pair(doc.body().childNodes().joinToString(""), images.toList())
     }
 
     /**
@@ -119,7 +152,8 @@ class BloggerDownloader(private val blogID: String) {
                 .filter { !it.isEmpty() }
                 .get(0)
                 .split("""\W""".toRegex())
-                .takeWhile { it.isNotBlank() }
+                .filter { !it.isEmpty() }
+                .take(4)
                 .joinToString(" ")
         } else {
             title!!
