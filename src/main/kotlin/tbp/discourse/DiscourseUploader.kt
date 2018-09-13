@@ -1,6 +1,8 @@
 package tbp.discourse
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import tbp.blogger.Blog
+import tbp.blogger.Comment
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -51,6 +53,18 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
                     println(s)
                 }
             }
+
+            val mapper = jacksonObjectMapper()
+            val topicId = mapper.readTree(res.body.toString())["topic_id"].asInt()
+            it.comments.sortedBy(Comment::date).forEach { c ->
+                val rawContent = "Comment\nAuthor: " + c.author + "\n" + "Message: " + c.content
+                discourse.createReplyToTopic(topicId, rawContent, c.date)
+            }
+
+            // tags
+            discourse.createReplyToTopic(topicId, it.tags.joinToString(", ", "Tags: >>", "<<"), it.date)
+            // original blogger post URL
+            discourse.createReplyToTopic(topicId, it.bloggerURL, it.date)
         }
 
         println("upload finished. duration: " + Duration.between(now, Instant.now()))
