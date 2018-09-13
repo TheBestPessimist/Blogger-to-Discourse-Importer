@@ -31,29 +31,24 @@ class DiscourseUploader(private val blog: Blog, discourseUrl: String) {
     }
 
     private fun uploadPosts(categoryId: Int) {
+        println("upload beginning")
+        val now = Instant.now()
+
         blog.posts
 //        .filter { it.title.contains("oildale", true) }
 //        .filter { it.title.contains("bonfires", true) }
             .forEach {
-                val res = discourse.createNewTopic(
-                    it.title,
-                    it.content,
-                    categoryId,
-                    it.date
-                )
+                val res = discourse.createNewTopic(it.title, it.content, categoryId, it.date)
 
                 with(res) {
                     if (200 != status) {
-                        var s = "${Instant.now()}: $status $statusText >${it.title}<"
-                        s += " $body ===${it.content}==="
-                        s += "\n" + "==".repeat(30)
-                        s += "\n" + "==".repeat(30)
-                        s += "\n" + "==".repeat(30)
+                        val s = "${Instant.now()}: $status $statusText >${it.title}<\n$body\n" + "==".repeat(30)
                         println(s)
                     }
                 }
             }
 
+        println("upload finished. duration: " + Duration.between(now, Instant.now()))
     }
 
     private fun cleanup() {
